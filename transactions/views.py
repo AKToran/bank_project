@@ -227,6 +227,9 @@ class TransferMoneyView(LoginRequiredMixin,CreateView):
             self.request,
             f'Successfully sent {"{:,.2f}".format(float(amount))}$ to {receiver}.'
         )
+        # print(receiver_account.user.email)
+        send_transaction_email(self.request.user, amount, "Money Transferred",'transactions/transfer_email.html')
+        send_transaction_email(receiver_account.user, amount, "Money Received!",'transactions/receiver_email.html')
         return super().form_valid(form)
     
     def get_context_data(self, **kwargs):
