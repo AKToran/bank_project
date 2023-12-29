@@ -15,3 +15,11 @@ class Transactions(models.Model):
     class Meta: 
         ordering = ['timestamp']
 
+class TransferMoney(models.Model):
+    sender = models.ForeignKey(UserBankAccount, related_name="money_sent", on_delete=models.DO_NOTHING)
+    # receiver = models.ForeignKey(UserBankAccount, related_name="money_received", on_delete=models.DO_NOTHING)
+    receiver = models.DecimalField(max_digits=6, decimal_places=0)
+    amount = models.DecimalField(decimal_places=2, max_digits=12)
+
+    def __str__(self):
+        return f"from {self.sender} to {self.receiver}"

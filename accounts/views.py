@@ -12,7 +12,7 @@ from django.shortcuts import redirect
 class UserRegistrationView(FormView):
     template_name = 'accounts/registration.html'
     form_class = UserRegistrationForm
-    success_url = reverse_lazy('registration')
+    success_url = reverse_lazy('profile')
     #* reverse_lazy loads the page when clicked on the link not before. This function returns a lazy object, which is not evaluated until it's actually needed.
 
     def form_valid(self, form): 

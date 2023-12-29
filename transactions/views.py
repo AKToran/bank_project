@@ -1,3 +1,4 @@
+from typing import Any
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy
@@ -13,9 +14,10 @@ from transactions.forms import (
     DepositForm,
     WithdrawForm,
     LoanRequestForm,
+    TransferMoneyForm
 )
-from transactions.models import Transactions
-
+from transactions.models import Transactions, TransferMoney
+from accounts.models import UserBankAccount
 from django.core.mail import EmailMessage, EmailMultiAlternatives
 from django.template.loader import render_to_string
 
@@ -197,3 +199,41 @@ class LoanListView(LoginRequiredMixin,ListView):
         queryset = Transactions.objects.filter(account=user_account,transaction_type=3)
         print(queryset)
         return queryset
+    
+class TransferMoneyView(LoginRequiredMixin,CreateView):
+    model = TransferMoney
+    form_class = TransferMoneyForm
+    template_name = 'transactions/transfer.html'
+    title = ''
+    success_url = reverse_lazy('transaction_report')
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs.update({'sender' : self.request.user.account})
+        return kwargs
+    
+    def form_valid(self, form):
+        amount = form.cleaned_data.get('amount')
+        receiver = form.cleaned_data.get('receiver')
+        self.request.user.account.balance -= amount
+        self.request.user.account.save(update_fields=['balance'])
+
+        receiver_account = UserBankAccount.objects.get(account_no = receiver)
+        print(receiver_account)
+        receiver_account.balance += amount
+        receiver_account.save(update_fields=['balance'])   
+
+        messages.success(
+            self.request,
+            f'Successfully sent {"{:,.2f}".format(float(amount))}$ to {receiver}.'
+        )
+        return super().form_valid(form)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs) # template e context data pass kora
+        context.update({
+            'title': self.title
+        })
+        return context
+
+    

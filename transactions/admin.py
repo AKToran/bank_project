@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Transactions
+from .models import Transactions, TransferMoney
 from .views import send_transaction_email
 # admin.site.register(Transactions)
 
@@ -16,3 +16,5 @@ class TransactionAdmin(admin.ModelAdmin):
             obj.account.save()
             send_transaction_email(obj.account.user, obj.amount, "Loan Approved",'transactions/loan_approve.html')
         super().save_model(request, obj, form, change)
+
+admin.site.register(TransferMoney)

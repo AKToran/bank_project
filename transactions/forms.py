@@ -1,5 +1,8 @@
+from typing import Any
 from django import forms
-from .models import Transactions
+from .models import Transactions, TransferMoney
+from accounts.models import UserBankAccount
+
 class TransactionForm(forms.ModelForm):
     class Meta:
         model = Transactions
@@ -60,9 +63,40 @@ class WithdrawForm(TransactionForm):
         return amount
 
 
-
 class LoanRequestForm(TransactionForm):
     def clean_amount(self):
         amount = self.cleaned_data.get('amount')
-
         return amount 
+
+
+class TransferMoneyForm(forms.ModelForm):
+    class Meta:
+        model = TransferMoney
+        fields = ['receiver', 'amount']
+
+    def __init__(self, *args, **kwargs):
+        self.sender = kwargs.pop('sender')
+        super().__init__(*args, **kwargs)
+
+
+    def save(self, commit = True):
+        self.instance.sender = self.sender
+        return super().save()
+    
+    def clean_receiver(self):
+        receiver = self.cleaned_data.get('receiver')
+        
+        try:
+            UserBankAccount.objects.get(account_no=receiver)
+        except UserBankAccount.DoesNotExist:
+            raise forms.ValidationError("Account not found!")
+        return receiver
+
+    def clean_amount(self):
+        amount = self.cleaned_data.get('amount')
+        balance = self.sender.balance
+
+        if amount < 0 or amount > balance:
+            raise forms.ValidationError('Enter a valid amount!')
+        return amount
+        
