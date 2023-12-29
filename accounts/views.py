@@ -7,6 +7,10 @@ from django.contrib.auth import login, logout
 from django.contrib.auth.views import LoginView, LogoutView
 from django.views import View
 from django.shortcuts import redirect
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.views import PasswordChangeView
+from django.contrib import messages
+from transactions.views import send_transaction_email
 
 
 class UserRegistrationView(FormView):
@@ -43,7 +47,17 @@ class UserBankAccountUpdateView(View):
         form = UserUpdateForm(request.POST, instance=request.user)
         if form.is_valid():
             form.save()
-            return redirect('profile')  # Redirect to the user's profile page
+            return redirect('profile')  
         return render(request, self.template_name, {'form': form})
     
+class PasswordUpdateView(PasswordChangeView, LoginRequiredMixin):
+    template_name = 'accounts/passchange.html'
+
+    def form_valid(self, form):
+        messages.success(self.request, 'Changed password successfully.')
+        send_transaction_email(self.request.user, 0, "Changed Password", 'accounts/passchange_mail.html')
+        return super().form_valid(form)
     
+    def get_success_url(self):
+        return reverse_lazy('profile') 
+   

@@ -19,6 +19,9 @@
 
     <h4 class="font-bold text-3xl text-left pb-5">Account NO: {{request.user.account.account_no}}</h4>
     <h1 class="font-bold text-3xl text-center pb-2">Update Profile Information</h1>
+    <a href="{% url "pass_change" %}" class="bg-blue-900 text-white hover:text-blue-900 hover:bg-white border border-blue-900 font-bold px-4 py-2 rounded-lg">
+        Change Password
+    </a>
     <div class="w-full mt-10">
         <form method="post" class="bg-white shadow-md rounded px-8 pt-1 pb-8 mb-4">
             {% csrf_token %} 
